@@ -13,7 +13,28 @@ class LoginScreen extends StatelessWidget {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); // Form key for validation
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // ── Helper: يفتح دايرة التحميل ويقفل الشاشة ──────────────────────────────
+  void _showLoading(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // ← متقدرش تدوس برا عشان يقفل
+      builder: (_) => PopScope(
+        canPop: false, // ← متقدرش ترجع بزرار الـ back
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Helper: يقفل دايرة التحميل ────────────────────────────────────────────
+  void _hideLoading(BuildContext context) {
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,15 +50,13 @@ class LoginScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        // Adding SingleChildScrollView for scrolling
         padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Form(
-          key: _formKey, // Attach formKey to the Form widget
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 48),
-              // Translate the title
               Text(
                 "loginTitel".tr(),
                 style: GoogleFonts.poppins(
@@ -47,37 +66,34 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16),
-              // TextFormField for Email
               CustomTextFormField(
-                hintText: "loginEnEmail".tr(), // Translate hint
+                hintText: "loginEnEmail".tr(),
                 prefixIcon: Icons.mail_outline,
                 controller: _emailController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "emailRequired".tr(); // Translate "Email is required"
+                    return "emailRequired".tr();
                   }
-                  // Add regex for email validation
-                  String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
-                  RegExp regExp = RegExp(pattern);
-                  if (!regExp.hasMatch(value)) {
-                    return "invalidEmail".tr(); // Translate "Invalid email address"
+                  String pattern =
+                      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+                  if (!RegExp(pattern).hasMatch(value)) {
+                    return "invalidEmail".tr();
                   }
                   return null;
                 },
               ),
               SizedBox(height: 16),
-              // TextFormField for Password
               CustomTextFormField(
-                hintText: "loginEnPass".tr(), // Translate hint
+                hintText: "loginEnPass".tr(),
                 prefixIcon: Icons.lock_outline,
                 isPasswordField: true,
                 controller: _passwordController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "passwordRequired".tr(); // Translate "Password is required"
+                    return "passwordRequired".tr();
                   }
                   if (value.length < 6) {
-                    return "passwordTooShort".tr(); // Translate "Password too short"
+                    return "passwordTooShort".tr();
                   }
                   return null;
                 },
@@ -86,30 +102,26 @@ class LoginScreen extends StatelessWidget {
               InkWell(
                 onTap: () async {
                   if (_formKey.currentState?.validate() ?? false) {
-                    bool success = await FirebaseFunctions.LoginWithEmailAndPassword(
+                    _showLoading(context); // ← افتح الـ loading
+
+                    await FirebaseFunctions.loginWithEmailAndPassword(
                       _emailController.text,
                       _passwordController.text,
-                          () {
+                      () {
+                        _hideLoading(context); // ← قفل الـ loading
                         Navigator.pushNamedAndRemoveUntil(
                           context,
                           HomeScreen.routeName,
-                              (route) => false,
+                          (route) => false,
                         );
                       },
-                          (message) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(message)));
+                      (message) {
+                        _hideLoading(context); // ← قفل الـ loading
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(message ?? "loginError".tr())),
+                        );
                       },
                     );
-                    if (!success) {
-                      // Show error if login failed
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text("loginError".tr()), // Translate error message
-                        ),
-                      );
-                    }
                   }
                 },
                 child: Container(
@@ -121,7 +133,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      "loginButt".tr(), // Translate "Login"
+                      "loginButt".tr(),
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -132,12 +144,11 @@ class LoginScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 48),
-              // "Don't have an account?" text row, centered
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "loginDont".tr(), // Translate "Don't have an account?"
+                    "loginDont".tr(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w400,
                       fontSize: 14,
@@ -149,7 +160,7 @@ class LoginScreen extends StatelessWidget {
                       Navigator.pushNamed(context, SignUpScreen.routeName);
                     },
                     child: Text(
-                      "loginSignup ".tr(), // Translate "Sign up"
+                      "loginSignup".tr(),
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -160,12 +171,11 @@ class LoginScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 32),
-              // "OR" text centered
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "loginOr".tr(), // Translate "OR"
+                    "loginOr".tr(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w500,
                       fontSize: 16,
@@ -175,11 +185,8 @@ class LoginScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 24),
-              // Login with Google Button
               InkWell(
-                onTap: () {
-                  // Handle Google login action
-                },
+                onTap: () {},
                 child: Container(
                   width: double.infinity,
                   height: 48,
@@ -195,12 +202,12 @@ class LoginScreen extends StatelessWidget {
                     children: [
                       Image.asset(
                         'assets/images/google_icon.png',
-                        width: 24, // Size of the Google icon
+                        width: 24,
                         height: 24,
                       ),
                       SizedBox(width: 8),
                       Text(
-                        "loginWithGoogle".tr(), // Translate "Login with Google"
+                        "loginWithGoogle".tr(),
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -219,14 +226,14 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class CustomTextFormField extends StatelessWidget {
+class CustomTextFormField extends StatefulWidget {
   final String hintText;
   final IconData prefixIcon;
   final bool isPasswordField;
   final TextEditingController controller;
   final String? Function(String?)? validator;
 
-  CustomTextFormField({
+  const CustomTextFormField({
     required this.hintText,
     required this.prefixIcon,
     this.isPasswordField = false,
@@ -235,24 +242,29 @@ class CustomTextFormField extends StatelessWidget {
   });
 
   @override
+  State<CustomTextFormField> createState() => _CustomTextFormFieldState();
+}
+
+class _CustomTextFormFieldState extends State<CustomTextFormField> {
+  bool _obscure = true; // ← عشان الـ toggle يشتغل فعلاً
+
+  @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: controller,
-      obscureText: isPasswordField,
-      validator: validator,
+      controller: widget.controller,
+      obscureText: widget.isPasswordField ? _obscure : false,
+      validator: widget.validator,
       decoration: InputDecoration(
-        prefixIcon: Icon(prefixIcon),
-        suffixIcon: isPasswordField
+        prefixIcon: Icon(widget.prefixIcon),
+        suffixIcon: widget.isPasswordField
             ? IconButton(
-          icon: Icon(
-            isPasswordField ? Icons.visibility : Icons.visibility_off,
-          ),
-          onPressed: () {
-            // Password visibility toggle handled outside
-          },
-        )
+                icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                onPressed: () {
+                  setState(() => _obscure = !_obscure); // ← toggle فعلي
+                },
+              )
             : null,
-        hintText: hintText,
+        hintText: widget.hintText,
         hintStyle: TextStyle(color: Colors.grey),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/theme_provider.dart';
-import '../auth/login_screen.dart';
 import '../introduction_screens/onboarding_pages_screen.dart';
 
 class OnbordingScreen extends StatelessWidget {

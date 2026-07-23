@@ -11,7 +11,7 @@
   "loginEnPass": "Enter your password",
   "loginButt": "Login",
   "loginDont": "Don’t have an account ?",
-  "loginSignup": "Signup",
+  "loginSignup": "Sign up",
   "loginOr": "OR",
   "loginWithGoogle": "Login with Google",
   "signUpTitel": "Create your account",
@@ -55,6 +55,8 @@
   "deleteEvent": "Delete Event",
   "deleteConfirm": "Are you sure you want to delete this event?",
   "cancel": "Cancel",
-  "delete": "Delete"
+  "delete": "Delete",
+  "darkMode": "Dark Mode",
+  "logout": "Logout"
 
 }

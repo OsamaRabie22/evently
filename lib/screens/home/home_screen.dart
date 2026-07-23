@@ -4,6 +4,7 @@ import 'package:evently_1/screens/add_event/add_event_screen.dart';
 import 'package:evently_1/screens/home/tabs/favorite_page.dart';
 import 'package:evently_1/screens/home/tabs/home_page.dart';
 import 'package:evently_1/screens/home/tabs/profile_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -24,23 +25,30 @@ class HomeScreen extends StatelessWidget {
           var provider = Provider.of<ThemeProvider>(context);
           return Scaffold(
             appBar: AppBar(
-              title: ListTile(
-                title: Text(
-                  "homeTitle".tr(),
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 14,
-                    color: Theme.of(context).colorScheme.inversePrimary,
-                  ),
-                ),
-                subtitle: Text(
-                  "Osama Rabie",
-                  style: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 20,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
+              title: StreamBuilder<User?>(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder: (context, snapshot) {
+                  final user = snapshot.data;
+                  return ListTile(
+                    title: Text(
+                      "homeTitle".tr(),
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w400,
+                        fontSize: 14,
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      user?.displayName ?? 'user'.tr(),
+                      // ✅ من Firebase مش hardcoded
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 20,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                  );
+                },
               ),
               actions: [
                 // Icon for theme toggle
@@ -53,8 +61,6 @@ class HomeScreen extends StatelessWidget {
                         provider.currentTheme == ThemeMode.dark
                             ? "assets/images/moon.png"
                             : "assets/images/dark/sun.png",
-
-
                       ),
                     ),
                   ),

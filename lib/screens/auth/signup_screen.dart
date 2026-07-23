@@ -14,8 +14,28 @@ class SignUpScreen extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>(); // Form key for validation
+      TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  // ── Loading Helpers ────────────────────────────────────────────────────────
+  void _showLoading(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _hideLoading(BuildContext context) {
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,17 +51,15 @@ class SignUpScreen extends StatelessWidget {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        // Using SingleChildScrollView to handle overflow
         padding: const EdgeInsets.symmetric(horizontal: 15),
         child: Form(
-          key: _formKey, // Attach formKey to the Form widget
+          key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 48),
-              // Translate text here
               Text(
-                "signUpTitel".tr(), // Translate "Create your account"
+                "signUpTitel".tr(),
                 style: GoogleFonts.poppins(
                   fontWeight: FontWeight.w600,
                   fontSize: 24,
@@ -49,91 +67,91 @@ class SignUpScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 16),
-              // TextFormField for Name
               CustomTextFormField(
-                hintText: "signUpEnName".tr(), // Translate "Enter your name"
+                hintText: "signUpEnName".tr(),
                 prefixIcon: Icons.person_outline,
                 controller: _nameController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "nameRequired".tr(); // Translate "Name is required"
+                    return "nameRequired".tr();
                   }
                   return null;
                 },
               ),
               SizedBox(height: 16),
-              // TextFormField for Email
               CustomTextFormField(
-                hintText: "signUpEnEmail".tr(), // Translate "Enter your email"
+                hintText: "signUpEnEmail".tr(),
                 prefixIcon: Icons.mail_outline,
                 controller: _emailController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "emailRequired".tr(); // Translate "Email is required"
+                    return "emailRequired".tr();
                   }
-                  // Add regex for email validation
-                  String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
-                  RegExp regExp = RegExp(pattern);
-                  if (!regExp.hasMatch(value)) {
-                    return "invalidEmail".tr(); // Translate "Invalid email address"
+                  String pattern =
+                      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
+                  if (!RegExp(pattern).hasMatch(value)) {
+                    return "invalidEmail".tr();
                   }
                   return null;
                 },
               ),
               SizedBox(height: 16),
-              // TextFormField for Password
               CustomTextFormField(
-                hintText: "signUpEnPass".tr(), // Translate "Enter your password"
+                hintText: "signUpEnPass".tr(),
                 prefixIcon: Icons.lock_outline,
                 isPasswordField: true,
                 controller: _passwordController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "passwordRequired".tr(); // Translate "Password is required"
+                    return "passwordRequired".tr();
                   }
                   if (value.length < 6) {
-                    return "passwordTooShort".tr(); // Translate "Password too short"
+                    return "passwordTooShort".tr();
                   }
                   return null;
                 },
               ),
               SizedBox(height: 16),
-              // TextFormField for Confirm Password
               CustomTextFormField(
                 hintText: "signUpEnConfirmPass".tr(),
-                // Translate "Confirm your password"
                 prefixIcon: Icons.lock_outline,
                 isPasswordField: true,
                 controller: _confirmPasswordController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "confirmPasswordRequired".tr(); // Translate "Confirm password is required"
+                    return "confirmPasswordRequired".tr();
                   }
                   if (value != _passwordController.text) {
-                    return "passwordMismatch".tr(); // Translate "Passwords do not match"
+                    return "passwordMismatch".tr();
                   }
                   return null;
                 },
               ),
               SizedBox(height: 48),
               InkWell(
-                onTap: () {
+                onTap: () async {
                   if (_formKey.currentState?.validate() ?? false) {
-                    FirebaseFunctions.createUserWithEmailAndPassword(
+                    _showLoading(context); // ← افتح الـ loading
+
+                    await FirebaseFunctions.createUserWithEmailAndPassword(
                       _emailController.text,
                       _passwordController.text,
                       _nameController.text,
-                          () {
+                      () {
+                        _hideLoading(context); // ← قفل الـ loading
                         Navigator.pushNamedAndRemoveUntil(
                           context,
                           HomeScreen.routeName,
-                              (route) => false,
+                          (route) => false,
                         );
                       },
-                          (message) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(message)));
+                      (message) {
+                        _hideLoading(context); // ← قفل الـ loading
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(message ?? "signUpError".tr()),
+                          ),
+                        );
                       },
                     );
                   }
@@ -147,7 +165,7 @@ class SignUpScreen extends StatelessWidget {
                   ),
                   child: Center(
                     child: Text(
-                      "signUpButt".tr(), // Translate "Sign up"
+                      "signUpButt".tr(),
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -158,12 +176,11 @@ class SignUpScreen extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 48),
-              // "Already have an account?" text row, centered
               Row(
-                mainAxisAlignment: MainAxisAlignment.center, // Center the Row
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "signUpDont".tr(), // Translate "Already have an account?"
+                    "signUpDont".tr(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w400,
                       fontSize: 14,
@@ -175,7 +192,7 @@ class SignUpScreen extends StatelessWidget {
                       Navigator.pushNamed(context, LoginScreen.routeName);
                     },
                     child: Text(
-                      "signUpLogin".tr(), // Translate "Login"
+                      "signUpLogin".tr(),
                       style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -186,13 +203,11 @@ class SignUpScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 32),
-              // "OR" text centered
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                // Center the "OR" text
                 children: [
                   Text(
-                    "signUpOr".tr(), // Translate "OR"
+                    "signUpOr".tr(),
                     style: GoogleFonts.poppins(
                       fontWeight: FontWeight.w500,
                       fontSize: 16,
@@ -202,11 +217,8 @@ class SignUpScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 24),
-              // Sign up with Google Button
               InkWell(
-                onTap: () {
-                  // Add your Google sign-in logic here
-                },
+                onTap: () {},
                 child: Container(
                   width: double.infinity,
                   height: 48,
@@ -222,13 +234,12 @@ class SignUpScreen extends StatelessWidget {
                     children: [
                       Image.asset(
                         'assets/images/google_icon.png',
-                        width: 24, // Size of the Google icon
+                        width: 24,
                         height: 24,
                       ),
                       SizedBox(width: 8),
                       Text(
                         "signUpWithGoogle".tr(),
-                        // Translate "Sign up with Google"
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -247,14 +258,15 @@ class SignUpScreen extends StatelessWidget {
   }
 }
 
-class CustomTextFormField extends StatelessWidget {
+// ── CustomTextFormField ────────────────────────────────────────────────────────
+class CustomTextFormField extends StatefulWidget {
   final String hintText;
   final IconData prefixIcon;
   final bool isPasswordField;
   final TextEditingController controller;
   final String? Function(String?)? validator;
 
-  CustomTextFormField({
+  const CustomTextFormField({
     required this.hintText,
     required this.prefixIcon,
     this.isPasswordField = false,
@@ -263,24 +275,27 @@ class CustomTextFormField extends StatelessWidget {
   });
 
   @override
+  State<CustomTextFormField> createState() => _CustomTextFormFieldState();
+}
+
+class _CustomTextFormFieldState extends State<CustomTextFormField> {
+  bool _obscure = true;
+
+  @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: controller,
-      obscureText: isPasswordField,
-      validator: validator,
+      controller: widget.controller,
+      obscureText: widget.isPasswordField ? _obscure : false,
+      validator: widget.validator,
       decoration: InputDecoration(
-        prefixIcon: Icon(prefixIcon),
-        suffixIcon: isPasswordField
+        prefixIcon: Icon(widget.prefixIcon),
+        suffixIcon: widget.isPasswordField
             ? IconButton(
-          icon: Icon(
-            isPasswordField ? Icons.visibility : Icons.visibility_off,
-          ),
-          onPressed: () {
-            // Password visibility toggle handled outside
-          },
-        )
+                icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              )
             : null,
-        hintText: hintText,
+        hintText: widget.hintText,
         hintStyle: TextStyle(color: Colors.grey),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

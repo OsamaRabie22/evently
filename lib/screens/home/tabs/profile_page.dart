@@ -1,17 +1,23 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:evently_1/providers/theme_provider.dart';
+import 'package:evently_1/screens/auth/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
+  // ← StatefulWidget عشان اللغة
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final user = FirebaseAuth.instance.currentUser;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -19,51 +25,65 @@ class ProfilePage extends StatelessWidget {
         children: [
           const SizedBox(height: 40),
 
-          // ── Avatar ───────────────────────────────────────────
-          CircleAvatar(
-            radius: 48,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            backgroundImage: user?.photoURL != null
-                ? NetworkImage(user!.photoURL!)
-                : null,
-            child: user?.photoURL == null
-                ? Text(
-                    _getInitials(user?.displayName ?? 'U'),
+          // ── StreamBuilder عشان يستنى الـ user يتحمل من Firebase ──────────
+          StreamBuilder<User?>(
+            stream: FirebaseAuth.instance.authStateChanges(),
+            builder: (context, snapshot) {
+              final user = snapshot.data;
+              final displayName = user?.displayName ?? '';
+              final email = user?.email ?? '';
+              final photoURL = user?.photoURL;
+
+              return Column(
+                children: [
+                  // ── Avatar ───────────────────────────────────────────────
+                  CircleAvatar(
+                    radius: 48,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    backgroundImage: photoURL != null
+                        ? NetworkImage(photoURL)
+                        : null,
+                    child: photoURL == null
+                        ? Text(
+                            _getInitials(displayName),
+                            style: GoogleFonts.poppins(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+
+                  // ── Name ─────────────────────────────────────────────────
+                  Text(
+                    displayName.isNotEmpty ? displayName : 'user'.tr(),
                     style: GoogleFonts.poppins(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                  )
-                : null,
-          ),
-          const SizedBox(height: 12),
+                  ),
+                  const SizedBox(height: 4),
 
-          // ── Name ─────────────────────────────────────────────
-          Text(
-            user?.displayName ?? 'User',
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
+                  // ── Email ─────────────────────────────────────────────────
+                  Text(
+                    email,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-          const SizedBox(height: 4),
 
-          // ── Email ────────────────────────────────────────────
-          Text(
-            user?.email ?? '',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: Theme.of(context).colorScheme.inversePrimary,
-            ),
-          ),
           const SizedBox(height: 32),
 
-          // ── Settings Cards ───────────────────────────────────
-
-          // Dark Mode
+          // ── Dark Mode ─────────────────────────────────────────────────────
           _SettingCard(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -86,7 +106,7 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Language
+          // ── Language ──────────────────────────────────────────────────────
           _SettingCard(
             onTap: () => _showLanguageDialog(context),
             child: Row(
@@ -110,7 +130,7 @@ class ProfilePage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Logout
+          // ── Logout ────────────────────────────────────────────────────────
           _SettingCard(
             onTap: () => _confirmLogout(context),
             child: Row(
@@ -145,53 +165,68 @@ class ProfilePage extends StatelessWidget {
     if (parts.length >= 2) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
-    return name.isNotEmpty ? name[0].toUpperCase() : 'U';
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
 
   void _showLanguageDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          'onboardingLanguage'.tr(),
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(
-                'onboardingEnglish'.tr(),
-                style: GoogleFonts.poppins(),
-              ),
-              leading: Radio<String>(
-                value: 'en',
-                groupValue: context.locale.languageCode,
-                onChanged: (val) {
-                  context.setLocale(const Locale('en'));
-                  Navigator.pop(context);
-                },
-                activeColor: Theme.of(context).colorScheme.primary,
-              ),
+      builder: (_) => StatefulBuilder(
+        // ← StatefulBuilder عشان الـ dialog يتحدث
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            ListTile(
-              title: Text(
-                'onboardingArabic'.tr(),
-                style: GoogleFonts.poppins(),
-              ),
-              leading: Radio<String>(
-                value: 'ar',
-                groupValue: context.locale.languageCode,
-                onChanged: (val) {
-                  context.setLocale(const Locale('ar'));
-                  Navigator.pop(context);
-                },
-                activeColor: Theme.of(context).colorScheme.primary,
-              ),
+            title: Text(
+              'onboardingLanguage'.tr(),
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
             ),
-          ],
-        ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: Text(
+                    'onboardingEnglish'.tr(),
+                    style: GoogleFonts.poppins(),
+                  ),
+                  leading: Radio<String>(
+                    value: 'en',
+                    groupValue: context.locale.languageCode,
+                    onChanged: (val) async {
+                      await context.setLocale(const Locale('en', 'US'));
+                      if (context.mounted) {
+                        setDialogState(() {}); // ← يحدث الـ dialog
+                        setState(() {}); // ← يحدث الـ page
+                        Navigator.pop(context);
+                      }
+                    },
+                    activeColor: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                ListTile(
+                  title: Text(
+                    'onboardingArabic'.tr(),
+                    style: GoogleFonts.poppins(),
+                  ),
+                  leading: Radio<String>(
+                    value: 'ar',
+                    groupValue: context.locale.languageCode,
+                    onChanged: (val) async {
+                      await context.setLocale(const Locale('ar', 'EG'));
+                      if (context.mounted) {
+                        setDialogState(() {}); // ← يحدث الـ dialog
+                        setState(() {}); // ← يحدث الـ page
+                        Navigator.pop(context);
+                      }
+                    },
+                    activeColor: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -215,9 +250,11 @@ class ProfilePage extends StatelessWidget {
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               if (context.mounted) {
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/login', (route) => false);
+                // ✅ استخدم LoginScreen.routeName مش '/login'
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  LoginScreen.routeName,
+                  (route) => false,
+                );
               }
             },
             child: Text(
@@ -231,7 +268,7 @@ class ProfilePage extends StatelessWidget {
   }
 }
 
-// ── Reusable Setting Card ────────────────────────────────────────────────────
+// ── Reusable Setting Card ─────────────────────────────────────────────────────
 class _SettingCard extends StatelessWidget {
   const _SettingCard({required this.child, this.onTap});
 
