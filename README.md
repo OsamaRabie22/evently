@@ -1,31 +1,115 @@
-Evently 🎉
-A cross-platform mobile application built with Flutter that allows users to create, manage, and track personal events — with full support for dark mode, Arabic/English localization, and real-time Firebase sync.
+# Evently 🎉
 
-Features:
-Authentication — Email/password login & sign up via Firebase Auth. Session is persisted across app restarts — no need to log in again after closing the app.
-Event Management — Create, view, edit, and delete personal events stored in Firestore, each with a title, description, category, date, and time.
-Favorites — Mark events as favorite and view them in a dedicated Favorites page, synced in real-time.
-Event Details — Dedicated screen showing full event info with edit and delete actions.
-Category Filtering — Filter events by category (Sport, Birthday, Meeting, Exhibition, Book Club) on the home screen.
-Dark Mode — Full dark/light theme toggle, persisted across sessions using SharedPreferences.
-Localization — Full Arabic and English support with easy_localization, including RTL layout. Language preference is changeable from the Profile screen.
-Onboarding — First-launch onboarding screens for theme and language selection.
-Profile Screen — Displays user avatar (initials), name, email, with options for dark mode toggle, language switching, and logout.
+A modern event management app built with Flutter & Firebase.
 
-Project Structure:
+---
+
+## About
+
+Evently is a full-featured event management mobile application that allows users to create, manage, and favorite events — with a clean UI that supports both **Light & Dark themes** and **Arabic & English localization**.
+
+---
+
+## Features
+
+- 🔐 **Authentication** — Email/Password Sign Up & Login via Firebase Auth
+- 🎨 **Theme Support** — Light & Dark mode with smooth switching
+- 🌍 **Localization** — Full Arabic & English support (RTL/LTR)
+- 📅 **Event Management** — Create, Edit, Delete events stored in Firestore
+- ❤️ **Favorites** — Mark events as favorites with real-time sync
+- 👤 **User Profile** — Display name, avatar initials, language & theme settings
+- 🔄 **Real-time Updates** — Firestore streams for live data
+- 🧭 **Onboarding** — Multi-step intro screen with language & theme selection
+
+---
+
+## Tech Stack
+
+| Technology | Usage |
+|---|---|
+| Flutter | UI Framework |
+| Firebase Auth | Authentication |
+| Cloud Firestore | Database |
+| Provider | State Management |
+| Easy Localization | i18n (AR/EN) |
+| Google Fonts | Typography (Poppins) |
+
+---
+
+## Project Structure
+
+```
 lib/
-├── core/               # Theme, Firebase functions
-├── helpers/            # Firestore helper
-├── models/             # TaskModel
-├── providers/          # ThemeProvider, HomePageProvider, AddEventProvider
+├── main.dart
+├── firebase_options.dart
+│
+├── core/
+│   ├── firebase_functions.dart           # Auth: Sign Up, Login
+│   └── my_theme.dart                     # Light & Dark ThemeData
+│
+├── helpers/
+│   └── firestore_helper.dart             # Firestore CRUD + Streams
+│
+├── models/
+│   ├── event_model.dart                  # Event data model
+│   ├── task_model.dart                   # Task data model
+│   └── onboarding_page_model.dart        # Onboarding page model
+│
+├── providers/
+│   ├── theme_provider.dart               # Theme state (light/dark)
+│   ├── home_provider.dart                # Bottom nav state
+│   ├── home_page_provider.dart           # Home page state
+│   └── add_event_provider.dart           # Add/Edit event state
+│
 ├── screens/
-│   ├── auth/           # Login, Signup
-│   ├── home/           # HomeScreen, HomePage
-│   ├── add_event/      # AddEventScreen, EditEventScreen, EventDetailsScreen
-│   ├── onboarding/     # Onboarding screens
-│   └── profile/        # ProfilePage
-├── widget/             # Reusable widgets (EventCard, DateTimeRow, etc.)
-└── main.dart
-assets/
-├── images/             # Event category images (light + dark)
-└── translations/       # en.json, ar.json
+│   ├── onbording_screen/
+│   │   ├── app_start_screen.dart         # Splash / entry point
+│   │   └── onbording_screen.dart         # Language & theme selection
+│   ├── introduction_screens/
+│   │   └── onboarding_pages_screen.dart  # 3-step onboarding PageView
+│   ├── auth/
+│   │   ├── login_screen.dart             # Login with email/password
+│   │   └── signup_screen.dart            # Sign up with email/password
+│   ├── home/
+│   │   ├── home_screen.dart              # Main screen with BottomNavBar
+│   │   └── tabs/
+│   │       ├── home_page.dart            # Events list
+│   │       ├── favorite_page.dart        # Favorited events
+│   │       └── profile_page.dart         # User profile & settings
+│   └── add_event/
+│       ├── add_event_screen.dart         # Create new event
+│       ├── edit_event_screen.dart        # Edit existing event
+│       └── event_details_screen.dart     # Event details view
+│
+└── widget/
+    ├── event_card.dart                   # Reusable event card widget
+    └── date_time_row.dart                # Date & time display widget
+```
+
+---
+
+## Getting Started
+
+**Prerequisites**
+- Flutter SDK ≥ 3.0.0
+- Firebase project configured
+
+**Installation**
+
+```bash
+# 1. Clone the repo
+git clone https://github.com/OsamaRabie22/evently.git
+
+# 2. Install dependencies
+flutter pub get
+
+# 3. Run the app
+flutter run
+```
+
+---
+
+## Author
+
+**Osama Rabie**
+GitHub: https://github.com/OsamaRabie22
