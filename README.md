@@ -13,12 +13,13 @@ Evently is a full-featured event management mobile application that allows users
 ## Features
 
 - 🔐 **Authentication** — Email/Password Sign Up & Login via Firebase Auth
+- 🔄 **Auto Login** — Stay signed in across sessions
 - 🎨 **Theme Support** — Light & Dark mode with smooth switching
 - 🌍 **Localization** — Full Arabic & English support (RTL/LTR)
 - 📅 **Event Management** — Create, Edit, Delete events stored in Firestore
 - ❤️ **Favorites** — Mark events as favorites with real-time sync
 - 👤 **User Profile** — Display name, avatar initials, language & theme settings
-- 🔄 **Real-time Updates** — Firestore streams for live data
+- 📡 **Real-time Updates** — Firestore streams for live data
 - 🧭 **Onboarding** — Multi-step intro screen with language & theme selection
 
 ---
